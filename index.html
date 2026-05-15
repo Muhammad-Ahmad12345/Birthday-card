@@ -281,15 +281,12 @@
         display: grid;
       }
 
-      body.show-step-2 .step-1,
-      body.show-step-3 .step-1,
-      body.show-step-3 .step-2 {
+      body.show-step-2 .step-1 {
         display: none;
       }
 
       body.show-step-2 .hero,
-      body.show-step-3 .hero,
-      body.show-step-3 .step-2 {
+      body.show-step-2 .step-2 {
         min-height: auto;
         padding-bottom: 6px;
       }
@@ -697,52 +694,10 @@
             Kujh log dekh ke sohne lagde ne. Kujh roohaan yaad rehn layi sohnian hundian ne.
           </p>
           <div class="cta-row">
-            <button class="go-next" type="button" id="goNextButton2">Go Next</button>
-          </div>
           <div class="back-row">
             <button class="go-back" type="button" id="goBackButton2">Go Back</button>
           </div>
         </article>
-      </section>
-
-      <section class="page-step step-3 grid" id="step3">
-        <aside class="panel questions reveal delay-3">
-          <p class="kicker">Questions</p>
-          <h2>Thoughts worth sitting with</h2>
-          <form id="responsesForm">
-            <div class="question-list">
-              <div class="question-card">
-                <p>Which abaya color or style makes you feel most graceful?</p>
-                <textarea id="q1" placeholder="Write your answer..." rows="2"></textarea>
-              </div>
-
-              <div class="question-card">
-                <p>Is there something about you you wish someone would truly notice and understand?</p>
-                <textarea id="q2" placeholder="Write your answer..." rows="2"></textarea>
-              </div>
-
-              <div class="question-card">
-                <p>Which small thing about you do you wish someone would gently ask about?</p>
-                <textarea id="q3" placeholder="Write your answer..." rows="2"></textarea>
-              </div>
-
-              <div class="question-card">
-                <p>If someone wanted to make you feel truly seen, what would they do?</p>
-                <textarea id="q4" placeholder="Write your answer..." rows="2"></textarea>
-              </div>
-            </div>
-
-            <div style="display:flex;gap:12px;justify-content:center;margin-top:18px;">
-              <button type="button" class="go-next" id="submitAnswers">Submit</button>
-              <button type="button" class="go-back" id="goBackButton3">Go Back</button>
-            </div>
-          </form>
-
-          <aside id="adminView" style="display:none;margin-top:18px;">
-            <h3 style="text-align:center;margin-bottom:10px;">Saved responses</h3>
-            <div id="responsesList"></div>
-          </aside>
-        </aside>
       </section>
 
       <div class="footer">May your days bloom softly, like flowers after a long-awaited rain.</div>
@@ -752,133 +707,28 @@
       const goNextButton1 = document.getElementById('goNextButton1');
       const goNextButton2 = document.getElementById('goNextButton2');
       const goBackButton2 = document.getElementById('goBackButton2');
-      const goBackButton3 = document.getElementById('goBackButton3');
       const step1 = document.getElementById('step1');
       const step2 = document.getElementById('step2');
-      const step3 = document.getElementById('step3');
 
       const showStep1 = () => {
-        document.body.classList.remove('show-step-2', 'show-step-3');
+        document.body.classList.remove('show-step-2');
         step1.classList.add('active');
         step2.classList.remove('active');
-        step3.classList.remove('active');
       };
 
       const showStep2 = () => {
-        document.body.classList.remove('show-step-3');
         document.body.classList.add('show-step-2');
         step1.classList.remove('active');
         step2.classList.add('active');
-        step3.classList.remove('active');
-      };
-
-      const showStep3 = () => {
-        document.body.classList.add('show-step-3');
-        step1.classList.remove('active');
-        step2.classList.remove('active');
-        step3.classList.add('active');
       };
 
       goNextButton1.addEventListener('click', () => {
         showStep2();
       });
 
-      goNextButton2.addEventListener('click', () => {
-        showStep3();
-      });
-
       goBackButton2.addEventListener('click', () => {
         showStep1();
       });
-
-      goBackButton3.addEventListener('click', () => {
-        showStep2();
-      });
-
-      // Save MCQ responses locally and POST to local server at http://localhost:3000/submit
-      const submitAnswers = document.getElementById('submitAnswers');
-      const getValue = (name) => {
-        const el = document.getElementById(name);
-        if (!el) return null;
-        return el.value.trim() || null;
-      };
-
-      submitAnswers.addEventListener('click', async () => {
-        const payload = {
-          q1: getValue('q1'),
-          q2: getValue('q2'),
-          q3: getValue('q3'),
-          q4: getValue('q4'),
-          ts: new Date().toISOString()
-        };
-
-        // Save to localStorage
-        try {
-          const key = 'rubina_responses';
-          const existing = JSON.parse(localStorage.getItem(key) || '[]');
-          existing.push(payload);
-          localStorage.setItem(key, JSON.stringify(existing));
-        } catch (err) {
-          console.error('Saving locally failed', err);
-        }
-
-        // Try posting to server (http://localhost:3000/submit)
-        try {
-          await fetch('http://localhost:3000/submit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-        } catch (err) {
-          // ignore network errors (page may be local file)
-        }
-
-        // feedback
-        submitAnswers.textContent = 'Saved';
-        submitAnswers.disabled = true;
-        setTimeout(() => {
-          submitAnswers.textContent = 'Submit';
-          submitAnswers.disabled = false;
-        }, 2400);
-
-        // If admin view is open, refresh the list (attempt)
-        if (location.search.includes('admin=1')) {
-          loadAdminResponses();
-        }
-      });
-
-      // Admin view: fetch responses from server or localStorage and render
-      async function loadAdminResponses() {
-        const list = document.getElementById('responsesList');
-        list.innerHTML = 'Loading...';
-        let rows = [];
-        try {
-          const r = await fetch('http://localhost:3000/responses');
-          if (r.ok) rows = await r.json();
-        } catch (err) {
-          // fallback to localStorage
-          try {
-            rows = JSON.parse(localStorage.getItem('rubina_responses') || '[]');
-          } catch (e) { rows = []; }
-        }
-
-        if (!rows || rows.length === 0) {
-          list.innerHTML = '<div style="text-align:center;opacity:0.8">No responses yet</div>';
-          return;
-        }
-
-        list.innerHTML = rows.map(r => {
-          const ts = r.ts || r.receivedAt || '';
-          return `<div style="border-bottom:1px solid rgba(255,255,255,0.04);padding:12px"><div style="font-size:0.9rem;color:rgba(255,240,246,0.85);margin-bottom:8px">${ts}</div><div><strong>Abaya:</strong> ${r.q1||''}</div><div><strong>Notice:</strong> ${r.q2||''}</div><div><strong>Ask about:</strong> ${r.q3||''}</div><div><strong>Seen by:</strong> ${r.q4||''}</div></div>`;
-        }).join('');
-      }
-
-      // Auto-show admin if ?admin=1
-      if (location.search.includes('admin=1')) {
-        document.getElementById('responsesList').innerHTML = '';
-        document.getElementById('adminView').style.display = 'block';
-        loadAdminResponses();
-      }
     </script>
   </body>
 </html>
