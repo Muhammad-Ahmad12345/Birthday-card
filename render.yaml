@@ -1,13 +1,12 @@
 services:
   - type: web
     name: birthday-card
-    env: node
+    env: docker
     plan: free
     repo: https://github.com/Muhammad-Ahmad12345/Birthday-card
     branch: main
     rootDir: "/"
-    buildCommand: npm install
-    startCommand: npm start
+    dockerfilePath: ./Dockerfile
     autoDeploy: true
     envVars:
       - key: MONGO_URI
