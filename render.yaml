@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: birthday-card
+    env: node
+    plan: free
+    repo: https://github.com/Muhammad-Ahmad12345/Birthday-card
+    branch: main
+    rootDir: "/"
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: MONGO_URI
+        value: ""
+      - key: DB_NAME
+        value: "rubinaDB"
